@@ -30,7 +30,7 @@ jobs:
           NOTIFY_CHANNEL: dingtalk
           DINGTALK_WEBHOOK_URL: ${{ secrets.DINGTALK_WEBHOOK_URL }}
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
-          KEYWORDS: 电池,新能源
+          KEYWORDS: 锂电,新能源,碳酸锂
           POLL_INTERVAL_SEC: 60
           CLS_RN: 20
           STATE_DB_PATH: data/state.db

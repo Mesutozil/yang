@@ -108,9 +108,10 @@ def build_dingtalk_markdown(result: MatchResult) -> tuple[str, str]:
 class DingTalkNotifier:
     """钉钉自定义群机器人 Webhook（免费）。"""
 
-    def __init__(self, webhook_url: str, secret: str = "") -> None:
+    def __init__(self, webhook_url: str, secret: str = "", label: str = "") -> None:
         self.webhook_url = webhook_url
         self.secret = secret.strip()
+        self.label = label or webhook_url[-12:]
 
     def _signed_url(self) -> str:
         if not self.secret:
@@ -146,7 +147,11 @@ class DingTalkNotifier:
             if body.get("errcode", 0) != 0:
                 logger.error("DingTalk webhook error: %s", body)
                 return False
-            logger.info("DingTalk notification sent for item %s", result.item.id)
+            logger.info(
+                "DingTalk notification sent for item %s (webhook ...%s)",
+                result.item.id,
+                self.label,
+            )
             return True
         except (requests.RequestException, ValueError) as exc:
             logger.error("Failed to send DingTalk notification: %s", exc)
@@ -220,7 +225,7 @@ class MultiNotifier:
 
 def create_notifier(
     channel: str,
-    dingtalk_webhook_url: str = "",
+    dingtalk_webhook_urls: list[str] | None = None,
     dingtalk_secret: str = "",
     wxpusher_app_token: str = "",
     wxpusher_topic_ids: list[int] | None = None,
@@ -229,8 +234,10 @@ def create_notifier(
     notifiers: list[Notifier] = []
     channels = {c.strip().lower() for c in channel.split(",") if c.strip()}
 
-    if "dingtalk" in channels and dingtalk_webhook_url:
-        notifiers.append(DingTalkNotifier(dingtalk_webhook_url, dingtalk_secret))
+    if "dingtalk" in channels and dingtalk_webhook_urls:
+        for url in dingtalk_webhook_urls:
+            token_tail = url.split("access_token=")[-1][-8:]
+            notifiers.append(DingTalkNotifier(url, dingtalk_secret, label=token_tail))
 
     if "wxpusher" in channels and wxpusher_app_token:
         notifiers.append(

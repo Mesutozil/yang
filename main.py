@@ -119,7 +119,7 @@ def main() -> int:
     if not args.dry_run:
         notifier = create_notifier(
             channel=cfg.notify_channel,
-            dingtalk_webhook_url=cfg.dingtalk_webhook_url,
+            dingtalk_webhook_urls=cfg.dingtalk_webhook_urls,
             dingtalk_secret=cfg.dingtalk_secret,
             wxpusher_app_token=cfg.wxpusher_app_token,
             wxpusher_topic_ids=cfg.wxpusher_topic_ids,

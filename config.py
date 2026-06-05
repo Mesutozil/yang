@@ -24,10 +24,19 @@ def _parse_str_list(raw: str) -> list[str]:
     return [part.strip() for part in raw.split(",") if part.strip()]
 
 
+def _parse_webhook_urls(raw: str) -> list[str]:
+    urls: list[str] = []
+    for part in raw.replace("\n", ",").split(","):
+        part = part.strip()
+        if part and "access_token=" in part:
+            urls.append(part)
+    return urls
+
+
 @dataclass(frozen=True)
 class Config:
     notify_channel: str
-    dingtalk_webhook_url: str
+    dingtalk_webhook_urls: list[str]
     dingtalk_secret: str
     wxpusher_app_token: str
     wxpusher_topic_ids: list[int]
@@ -41,12 +50,13 @@ class Config:
 def load_config() -> Config:
     notify_channel = os.getenv("NOTIFY_CHANNEL", "dingtalk").strip() or "dingtalk"
     dingtalk_webhook = os.getenv("DINGTALK_WEBHOOK_URL", "").strip()
+    dingtalk_webhook_urls = _parse_webhook_urls(dingtalk_webhook)
     dingtalk_secret = os.getenv("DINGTALK_SECRET", "").strip()
     wxpusher_token = os.getenv("WXPUSHER_APP_TOKEN", "").strip()
     wxpusher_topic_ids = _parse_int_list(os.getenv("WXPUSHER_TOPIC_IDS", ""))
     wxpusher_uids = _parse_str_list(os.getenv("WXPUSHER_UIDS", ""))
 
-    keywords_raw = os.getenv("KEYWORDS", "电池,新能源")
+    keywords_raw = os.getenv("KEYWORDS", "锂电,新能源,碳酸锂")
     keywords = [k.strip() for k in keywords_raw.split(",") if k.strip()]
 
     poll_interval = int(os.getenv("POLL_INTERVAL_SEC", "60"))
@@ -57,7 +67,7 @@ def load_config() -> Config:
 
     return Config(
         notify_channel=notify_channel,
-        dingtalk_webhook_url=dingtalk_webhook,
+        dingtalk_webhook_urls=dingtalk_webhook_urls,
         dingtalk_secret=dingtalk_secret,
         wxpusher_app_token=wxpusher_token,
         wxpusher_topic_ids=wxpusher_topic_ids,
@@ -76,10 +86,8 @@ def validate_notify_config(cfg: Config) -> str | None:
 
     missing: list[str] = []
     if "dingtalk" in channels:
-        if not cfg.dingtalk_webhook_url:
+        if not cfg.dingtalk_webhook_urls:
             missing.append("DINGTALK_WEBHOOK_URL")
-        elif "access_token=" not in cfg.dingtalk_webhook_url:
-            missing.append("valid DINGTALK_WEBHOOK_URL")
 
     if "wxpusher" in channels:
         if not cfg.wxpusher_app_token:
