@@ -1,0 +1,37 @@
+name: CLS Keyword Monitor
+
+on:
+  schedule:
+    # 每 5 分钟执行一次（GitHub Actions 最短间隔）
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Restore dedup state
+        uses: actions/cache@v4
+        with:
+          path: data/state.db
+          key: monitor-state-v1-${{ github.repository }}
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run monitor once
+        env:
+          NOTIFY_CHANNEL: dingtalk
+          DINGTALK_WEBHOOK_URL: ${{ secrets.DINGTALK_WEBHOOK_URL }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+          KEYWORDS: 电池,新能源
+          POLL_INTERVAL_SEC: 60
+          CLS_RN: 20
+          STATE_DB_PATH: data/state.db
+        run: python main.py --once
