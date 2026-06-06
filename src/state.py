@@ -21,9 +21,12 @@ class StateStore:
         )
         self._conn.commit()
 
-    def is_empty(self) -> bool:
+    def count(self) -> int:
         row = self._conn.execute("SELECT COUNT(*) FROM seen_items").fetchone()
-        return row is not None and row[0] == 0
+        return int(row[0]) if row else 0
+
+    def is_empty(self) -> bool:
+        return self.count() == 0
 
     def has_seen(self, item_id: str) -> bool:
         row = self._conn.execute(

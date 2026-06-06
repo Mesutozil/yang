@@ -59,6 +59,7 @@ def run_once(cfg, store: StateStore, fetcher: ClsFetcher, notifier: Notifier | N
         return
 
     cold_start = store.is_empty()
+    logger.info("State DB: %d seen items, cold_start=%s", store.count(), cold_start)
     sent = process_batch(items, store, cfg.keywords, notifier, cold_start)
     if sent:
         logger.info("Sent %d notification(s)", sent)

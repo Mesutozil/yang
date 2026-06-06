@@ -17,10 +17,11 @@ jobs:
           python-version: "3.11"
 
       - name: Restore dedup state
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: data/state.db
-          key: monitor-state-v1-${{ github.repository }}
+          key: monitor-state-v2-${{ github.repository }}
+          fail-on-cache-miss: false
 
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -35,3 +36,11 @@ jobs:
           CLS_RN: 50
           STATE_DB_PATH: data/state.db
         run: python main.py --once
+
+      # 每次运行后必须保存 state.db；旧版 cache 在 hit 时不会写回，导致重复推送
+      - name: Save dedup state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/state.db
+          key: monitor-state-v2-${{ github.repository }}
