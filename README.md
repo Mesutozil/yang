@@ -153,15 +153,15 @@ monitorkeyword/
 
 ### 方案 B：阿里云轻量服务器（推荐，实时性最好）
 
-已提供一键部署，详见 **[deploy/DEPLOY.md](deploy/DEPLOY.md)**（用户 `admin`，目录 `/home/admin/yangq`）。
+已提供一键部署，详见 **[deploy/DEPLOY.md](deploy/DEPLOY.md)**（用户 `root`，目录 `/home/root/yangq`）。
 
 ```bash
-ssh admin@你的公网IP
-git clone https://github.com/Mesutozil/yang.git /home/admin/yangq
-cd /home/admin/yangq
+ssh root@你的公网IP
+git clone https://github.com/Mesutozil/yang.git /home/root/yangq
+cd /home/root/yangq
 bash deploy/install.sh
 nano .env
-sudo systemctl start monitorkeyword
+systemctl start monitorkeyword
 ```
 
 可保持 `POLL_INTERVAL_SEC=60`。上线后请关闭 GitHub Actions 定时任务，避免重复推送。
