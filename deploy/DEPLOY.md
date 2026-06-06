@@ -33,8 +33,8 @@ DINGTALK_WEBHOOK_URL=https://oapi.dingtalk.com/robot/send?access_token=第一个
 DINGTALK_SECRET=
 
 KEYWORDS=锂电,新能源,碳酸锂
-POLL_INTERVAL_SEC=60
-CLS_RN=50
+POLL_INTERVAL_SEC=300
+CLS_RN=20
 STATE_DB_PATH=data/state.db
 ```
 

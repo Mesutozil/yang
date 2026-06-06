@@ -77,8 +77,8 @@ WXPUSHER_TOPIC_IDS=...
 | `WXPUSHER_TOPIC_IDS` | WxPusher 主题 ID，逗号分隔 | 与 UID 二选一 |
 | `WXPUSHER_UIDS` | WxPusher 用户 UID，逗号分隔 | 与主题 ID 二选一 |
 | `KEYWORDS` | 监测关键词 | `电池,新能源` |
-| `POLL_INTERVAL_SEC` | 轮询间隔（秒） | `60` |
-| `CLS_RN` | 每次拉取条数 | `50` |
+| `POLL_INTERVAL_SEC` | 轮询间隔（秒） | `300`（5 分钟） |
+| `CLS_RN` | 每次拉取条数 | `20` |
 
 ### 4. 运行
 
@@ -164,7 +164,7 @@ nano .env
 systemctl start monitorkeyword
 ```
 
-可保持 `POLL_INTERVAL_SEC=60`。上线后请关闭 GitHub Actions 定时任务，避免重复推送。
+默认 `POLL_INTERVAL_SEC=300`（每 5 分钟）。上线后请关闭 GitHub Actions 定时任务，避免重复推送。
 
 ### 方案 C：本机 Mac（需电脑常开）
 

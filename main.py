@@ -132,7 +132,7 @@ def main() -> int:
 
     try:
         if args.test_notify:
-            test_fetcher = ClsFetcher(rn=max(cfg.cls_rn, 50))
+            test_fetcher = ClsFetcher(rn=max(cfg.cls_rn, 20))
             items = test_fetcher.fetch()
             matches = [
                 match_keywords(item, cfg.keywords)

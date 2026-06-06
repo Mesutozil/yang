@@ -59,8 +59,8 @@ def load_config() -> Config:
     keywords_raw = os.getenv("KEYWORDS", "锂电,新能源,碳酸锂")
     keywords = [k.strip() for k in keywords_raw.split(",") if k.strip()]
 
-    poll_interval = int(os.getenv("POLL_INTERVAL_SEC", "60"))
-    cls_rn = int(os.getenv("CLS_RN", "50"))
+    poll_interval = int(os.getenv("POLL_INTERVAL_SEC", "300"))
+    cls_rn = int(os.getenv("CLS_RN", "20"))
     state_db = Path(os.getenv("STATE_DB_PATH", "data/state.db"))
     if not state_db.is_absolute():
         state_db = BASE_DIR / state_db
