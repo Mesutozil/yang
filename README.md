@@ -166,6 +166,12 @@ systemctl start monitorkeyword
 
 默认 `POLL_INTERVAL_SEC=300`（每 5 分钟）。上线后请关闭 GitHub Actions 定时任务，避免重复推送。
 
+**日常更新代码：**
+
+```bash
+cd /home/root/yangq && bash deploy/update.sh
+```
+
 ### 方案 C：本机 Mac（需电脑常开）
 
 创建 `~/Library/LaunchAgents/com.monitorkeyword.cls.plist` 用 launchd 保活，仅适合电脑长期开机时使用。

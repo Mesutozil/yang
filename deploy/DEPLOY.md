@@ -72,7 +72,7 @@ journalctl -u monitorkeyword -f
 | 重启 | `systemctl restart monitorkeyword` |
 | 状态 | `systemctl status monitorkeyword` |
 | 日志 | `journalctl -u monitorkeyword -f` |
-| 更新代码 | `cd /home/root/yangq && git pull && systemctl restart monitorkeyword` |
+| 更新代码 | `cd /home/root/yangq && bash deploy/update.sh` |
 
 ## 七、关闭 GitHub Actions（避免重复推送）
 
