@@ -32,6 +32,6 @@ jobs:
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
           KEYWORDS: 锂电,新能源,碳酸锂
           POLL_INTERVAL_SEC: 60
-          CLS_RN: 20
+          CLS_RN: 50
           STATE_DB_PATH: data/state.db
         run: python main.py --once

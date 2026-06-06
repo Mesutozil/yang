@@ -60,7 +60,7 @@ def load_config() -> Config:
     keywords = [k.strip() for k in keywords_raw.split(",") if k.strip()]
 
     poll_interval = int(os.getenv("POLL_INTERVAL_SEC", "60"))
-    cls_rn = int(os.getenv("CLS_RN", "20"))
+    cls_rn = int(os.getenv("CLS_RN", "50"))
     state_db = Path(os.getenv("STATE_DB_PATH", "data/state.db"))
     if not state_db.is_absolute():
         state_db = BASE_DIR / state_db

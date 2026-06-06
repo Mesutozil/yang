@@ -78,7 +78,7 @@ def _extract_roll_data(data: dict[str, Any]) -> list[dict[str, Any]] | None:
 
 
 class ClsFetcher:
-    def __init__(self, rn: int = 20) -> None:
+    def __init__(self, rn: int = 50) -> None:
         self.rn = rn
         self.session = requests.Session()
         retry = Retry(

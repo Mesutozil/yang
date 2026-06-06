@@ -78,7 +78,7 @@ WXPUSHER_TOPIC_IDS=...
 | `WXPUSHER_UIDS` | WxPusher 用户 UID，逗号分隔 | 与主题 ID 二选一 |
 | `KEYWORDS` | 监测关键词 | `电池,新能源` |
 | `POLL_INTERVAL_SEC` | 轮询间隔（秒） | `60` |
-| `CLS_RN` | 每次拉取条数 | `20` |
+| `CLS_RN` | 每次拉取条数 | `50` |
 
 ### 4. 运行
 
