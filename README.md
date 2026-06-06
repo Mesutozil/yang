@@ -151,43 +151,20 @@ monitorkeyword/
 
 > GitHub Actions 最短只能 5 分钟一次，比本机 60 秒略慢，但个人监测完全够用。工作流会用缓存保存 `data/state.db`，避免重复推送。
 
-### 方案 B：云服务器 VPS（实时性更好）
+### 方案 B：阿里云轻量服务器（推荐，实时性最好）
 
-买一台 Linux 云服务器（阿里云/腾讯云轻量，约 30–50 元/月），SSH 登录后：
-
-```bash
-git clone https://github.com/你的用户名/monitorkeyword.git
-cd monitorkeyword
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env   # 填入钉钉 Webhook
-python main.py --once --dry-run   # 验证
-```
-
-用 systemd 保活（`/etc/systemd/system/monitorkeyword.service`）：
-
-```ini
-[Unit]
-Description=CLS Keyword Monitor
-After=network.target
-
-[Service]
-Type=simple
-User=root
-WorkingDirectory=/root/monitorkeyword
-ExecStart=/root/monitorkeyword/.venv/bin/python main.py
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
+已提供一键部署，详见 **[deploy/DEPLOY.md](deploy/DEPLOY.md)**（用户 `admin`，目录 `/home/admin/yangq`）。
 
 ```bash
-systemctl enable --now monitorkeyword
+ssh admin@你的公网IP
+git clone https://github.com/Mesutozil/yang.git /home/admin/yangq
+cd /home/admin/yangq
+bash deploy/install.sh
+nano .env
+sudo systemctl start monitorkeyword
 ```
 
-可保持 `POLL_INTERVAL_SEC=60`，比 GitHub Actions 更实时。
+可保持 `POLL_INTERVAL_SEC=60`。上线后请关闭 GitHub Actions 定时任务，避免重复推送。
 
 ### 方案 C：本机 Mac（需电脑常开）
 

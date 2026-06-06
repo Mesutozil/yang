@@ -1,0 +1,17 @@
+[Unit]
+Description=CLS Keyword Monitor (财联社关键词监测)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=admin
+Group=admin
+WorkingDirectory=/home/admin/yangq
+ExecStart=/home/admin/yangq/.venv/bin/python main.py
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
