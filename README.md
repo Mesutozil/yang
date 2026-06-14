@@ -1,6 +1,6 @@
-# 财联社关键词监测
+# 财联社 + 金十期货关键词监测
 
-轮询 [财联社电报](https://www.cls.cn/telegraph)，匹配指定关键词（默认：电池、新能源），命中后推送通知。
+轮询 [财联社电报](https://www.cls.cn/telegraph) 与 [金十期货快讯](https://qihuo.jin10.com/)，匹配指定关键词（默认：锂电、新能源、碳酸锂），命中后推送通知。
 
 支持两种**免费**通知渠道：
 
@@ -78,7 +78,9 @@ WXPUSHER_TOPIC_IDS=...
 | `WXPUSHER_UIDS` | WxPusher 用户 UID，逗号分隔 | 与主题 ID 二选一 |
 | `KEYWORDS` | 监测关键词 | `电池,新能源` |
 | `POLL_INTERVAL_SEC` | 轮询间隔（秒） | `300`（5 分钟） |
-| `CLS_RN` | 每次拉取条数 | `20` |
+| `CLS_RN` | 每次拉取财联社条数 | `20` |
+| `JIN10_ENABLED` | 是否监测金十期货 | `true` |
+| `JIN10_CHANNEL` | 金十期货分类 ID，留空为综合快讯 | 空 |
 
 ### 4. 运行
 

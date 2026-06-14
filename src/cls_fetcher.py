@@ -33,6 +33,7 @@ class TelegraphItem:
     content: str
     ctime: int
     shareurl: str
+    source: str = "cls"
 
 
 def _make_sign(param_string: str) -> str:

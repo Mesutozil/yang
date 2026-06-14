@@ -43,9 +43,19 @@ def _format_time(ctime: int) -> str:
     return datetime.fromtimestamp(ctime).strftime("%Y-%m-%d %H:%M:%S")
 
 
+SOURCE_LABELS = {
+    "cls": "财联社",
+    "jin10": "金十期货",
+}
+
+
+def _source_label(source: str) -> str:
+    return SOURCE_LABELS.get(source, source)
+
+
 def build_title(result: MatchResult) -> str:
     primary_kw = result.matched_keywords[0]
-    return f"财联社关键词命中：{primary_kw}"
+    return f"{_source_label(result.item.source)}关键词命中：{primary_kw}"
 
 
 def build_markdown_content(result: MatchResult) -> str:

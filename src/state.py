@@ -35,6 +35,13 @@ class StateStore:
         ).fetchone()
         return row is not None
 
+    def has_source_items(self, id_prefix: str) -> bool:
+        row = self._conn.execute(
+            "SELECT 1 FROM seen_items WHERE id LIKE ? LIMIT 1",
+            (f"{id_prefix}%",),
+        ).fetchone()
+        return row is not None
+
     def mark_seen(self, item_id: str, ctime: int, notified: bool = False) -> None:
         notified_at = datetime.now().isoformat() if notified else None
         self._conn.execute(

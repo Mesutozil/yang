@@ -5,9 +5,11 @@ import argparse
 import logging
 import sys
 import time
+from typing import Protocol
 
 from config import load_config, validate_notify_config
-from src.cls_fetcher import ClsFetcher
+from src.cls_fetcher import ClsFetcher, TelegraphItem
+from src.jin10_fetcher import Jin10QihuoFetcher
 from src.matcher import match_keywords
 from src.notifier import Notifier, create_notifier
 from src.state import StateStore
@@ -20,17 +22,32 @@ logging.basicConfig(
 logger = logging.getLogger("monitorkeyword")
 
 
+class NewsFetcher(Protocol):
+    def fetch(self) -> list[TelegraphItem]: ...
+
+
+def _is_cold_start(store: StateStore, source: str) -> bool:
+    if source == "jin10":
+        return not store.has_source_items("jin10:")
+    return store.is_empty()
+
+
 def process_batch(
     items,
     store: StateStore,
     keywords: list[str],
     notifier: Notifier | None,
     cold_start: bool,
+    source: str,
 ) -> int:
     """Process fetched items. Returns number of notifications sent."""
     if cold_start:
         store.seed_items([(item.id, item.ctime) for item in items])
-        logger.info("Cold start: seeded %d items without notifications", len(items))
+        logger.info(
+            "Cold start (%s): seeded %d items without notifications",
+            source,
+            len(items),
+        )
         return 0
 
     sent = 0
@@ -52,40 +69,93 @@ def process_batch(
     return sent
 
 
-def run_once(cfg, store: StateStore, fetcher: ClsFetcher, notifier: Notifier | None) -> None:
-    items = fetcher.fetch()
-    logger.info("Fetched %d telegraph items", len(items))
-    if not items:
-        return
+def fetch_all(fetchers: list[tuple[str, NewsFetcher]]) -> list[tuple[str, list[TelegraphItem]]]:
+    batches: list[tuple[str, list[TelegraphItem]]] = []
+    for source, fetcher in fetchers:
+        items = fetcher.fetch()
+        logger.info("Fetched %d items from %s", len(items), source)
+        batches.append((source, items))
+    return batches
 
-    cold_start = store.is_empty()
-    logger.info("State DB: %d seen items, cold_start=%s", store.count(), cold_start)
-    sent = process_batch(items, store, cfg.keywords, notifier, cold_start)
-    if sent:
-        logger.info("Sent %d notification(s)", sent)
+
+def run_once(
+    cfg,
+    store: StateStore,
+    fetchers: list[tuple[str, NewsFetcher]],
+    notifier: Notifier | None,
+) -> None:
+    sent_total = 0
+    for source, items in fetch_all(fetchers):
+        if not items:
+            continue
+
+        cold_start = _is_cold_start(store, source)
+        logger.info(
+            "State DB: %d seen items, source=%s, cold_start=%s",
+            store.count(),
+            source,
+            cold_start,
+        )
+        sent = process_batch(items, store, cfg.keywords, notifier, cold_start, source)
+        if sent:
+            logger.info("Sent %d notification(s) from %s", sent, source)
+        sent_total += sent
+
+    if sent_total:
+        logger.info("Sent %d notification(s) total", sent_total)
 
     removed = store.cleanup_old()
     if removed:
         logger.info("Cleaned up %d old records", removed)
 
 
-def run_loop(cfg, store: StateStore, fetcher: ClsFetcher, notifier: Notifier | None) -> None:
+def run_loop(
+    cfg,
+    store: StateStore,
+    fetchers: list[tuple[str, NewsFetcher]],
+    notifier: Notifier | None,
+) -> None:
+    sources = [source for source, _ in fetchers]
     logger.info(
-        "Starting monitor: keywords=%s, channels=%s, interval=%ds",
+        "Starting monitor: keywords=%s, sources=%s, channels=%s, interval=%ds",
         cfg.keywords,
+        sources,
         cfg.notify_channel,
         cfg.poll_interval_sec,
     )
     while True:
         try:
-            run_once(cfg, store, fetcher, notifier)
+            run_once(cfg, store, fetchers, notifier)
         except Exception:
             logger.exception("Unexpected error during poll cycle")
         time.sleep(cfg.poll_interval_sec)
 
 
+def _build_fetchers(cfg, cls_rn: int | None = None) -> list[tuple[str, NewsFetcher]]:
+    fetchers: list[tuple[str, NewsFetcher]] = [
+        ("cls", ClsFetcher(rn=cls_rn or cfg.cls_rn))
+    ]
+    if cfg.jin10_enabled:
+        fetchers.append(("jin10", Jin10QihuoFetcher(channel=cfg.jin10_channel)))
+    return fetchers
+
+
+def _collect_matches(
+    fetchers: list[tuple[str, NewsFetcher]],
+    keywords: list[str],
+) -> list:
+    matches = []
+    for _, fetcher in fetchers:
+        items = fetcher.fetch()
+        for item in sorted(items, key=lambda i: i.ctime, reverse=True):
+            result = match_keywords(item, keywords)
+            if result:
+                matches.append(result)
+    return matches
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="财联社关键词监测 + 钉钉/微信通知")
+    parser = argparse.ArgumentParser(description="财联社 + 金十期货关键词监测 + 钉钉/微信通知")
     parser.add_argument(
         "--once",
         action="store_true",
@@ -115,7 +185,7 @@ def main() -> int:
             return 1
 
     store = StateStore(cfg.state_db_path)
-    fetcher = ClsFetcher(rn=cfg.cls_rn)
+    fetchers = _build_fetchers(cfg)
     notifier = None
     if not args.dry_run:
         notifier = create_notifier(
@@ -132,19 +202,15 @@ def main() -> int:
 
     try:
         if args.test_notify:
-            test_fetcher = ClsFetcher(rn=max(cfg.cls_rn, 20))
-            items = test_fetcher.fetch()
-            matches = [
-                match_keywords(item, cfg.keywords)
-                for item in sorted(items, key=lambda i: i.ctime, reverse=True)
-            ]
-            matches = [m for m in matches if m]
+            test_fetchers = _build_fetchers(cfg, cls_rn=max(cfg.cls_rn, 50))
+            matches = _collect_matches(test_fetchers, cfg.keywords)
             if not matches:
                 logger.error("No articles matched keywords %s in latest fetch", cfg.keywords)
                 return 1
             latest = matches[0]
             logger.info(
-                "Test notify: id=%s keywords=%s url=%s",
+                "Test notify: source=%s id=%s keywords=%s url=%s",
+                latest.item.source,
                 latest.item.id,
                 latest.matched_keywords,
                 latest.item.shareurl,
@@ -155,9 +221,9 @@ def main() -> int:
                 logger.error("Test notification failed")
                 return 1
         elif args.once:
-            run_once(cfg, store, fetcher, notifier)
+            run_once(cfg, store, fetchers, notifier)
         else:
-            run_loop(cfg, store, fetcher, notifier)
+            run_loop(cfg, store, fetchers, notifier)
     except KeyboardInterrupt:
         logger.info("Stopped by user")
     finally:

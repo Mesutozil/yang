@@ -44,6 +44,8 @@ class Config:
     keywords: list[str]
     poll_interval_sec: int
     cls_rn: int
+    jin10_enabled: bool
+    jin10_channel: str
     state_db_path: Path
 
 
@@ -61,6 +63,13 @@ def load_config() -> Config:
 
     poll_interval = int(os.getenv("POLL_INTERVAL_SEC", "300"))
     cls_rn = int(os.getenv("CLS_RN", "20"))
+    jin10_enabled = os.getenv("JIN10_ENABLED", "true").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+        "off",
+    )
+    jin10_channel = os.getenv("JIN10_CHANNEL", "").strip()
     state_db = Path(os.getenv("STATE_DB_PATH", "data/state.db"))
     if not state_db.is_absolute():
         state_db = BASE_DIR / state_db
@@ -75,6 +84,8 @@ def load_config() -> Config:
         keywords=keywords,
         poll_interval_sec=poll_interval,
         cls_rn=cls_rn,
+        jin10_enabled=jin10_enabled,
+        jin10_channel=jin10_channel,
         state_db_path=state_db,
     )
 

@@ -1,4 +1,4 @@
-name: CLS Keyword Monitor
+name: Keyword Monitor
 
 on:
   schedule:
@@ -34,6 +34,7 @@ jobs:
           KEYWORDS: 锂电,新能源,碳酸锂
           POLL_INTERVAL_SEC: 300
           CLS_RN: 20
+          JIN10_ENABLED: true
           STATE_DB_PATH: data/state.db
         run: python main.py --once
 
